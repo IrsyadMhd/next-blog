@@ -5,6 +5,9 @@ const handler = async (req, res) => {
 
   const { email, name, text } = req.body;
 
+  const client = await MongoClient.connect(process.env.MONGO_DB);
+  const db = client.db();
+
   if (req.method === 'POST') {
     const comments = {
       email,
@@ -13,9 +16,6 @@ const handler = async (req, res) => {
       eventId,
     };
 
-    const client = await MongoClient.connect(process.env.MONGO_DB);
-    const db = client.db();
-
     const result = await db.collection('comments').insertOne(comments);
     comments.id = result.insertedId;
 
@@ -23,11 +23,16 @@ const handler = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    res.status(200).json([
-      { id: 'c1', name: 'irsyad', text: 'the first comment' },
-      { id: 'c2', name: 'ahmad', text: 'the second comment' },
-    ]);
+    const documents = await db
+      .collection('comments')
+      .find()
+      .sort({ _id: -1 })
+      .toArray();
+
+    res.status(200).json({ comments: documents });
   }
+
+  client.close();
 };
 
 export default handler;
