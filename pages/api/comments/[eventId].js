@@ -10,8 +10,8 @@ const handler = (req, res) => {
 
   if (req.method === 'GET') {
     res.status(200).json([
-      { id: 't1', name: 'irsyad', text: 'some comment' },
-      { id: 't2', name: 'ahmad', text: 'komen kedua' },
+      { id: 'c1', name: 'irsyad', text: 'the first comment' },
+      { id: 'c2', name: 'ahmad', text: 'the second comment' },
     ]);
   }
 };
