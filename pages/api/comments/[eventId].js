@@ -1,14 +1,32 @@
-import { MongoClient } from 'mongodb';
+import { dbConn, insertDoc, getDocuments } from '../../../helpers/db-util';
 
 const handler = async (req, res) => {
   const eventId = req.query.eventId;
 
-  const { email, name, text } = req.body;
+  let client;
 
-  const client = await MongoClient.connect(process.env.MONGO_DB);
-  const db = client.db();
+  try {
+    client = await dbConn();
+  } catch (error) {
+    res.status(500).json({ message: 'Gagal terhubung ke database!' });
+    return;
+  }
 
   if (req.method === 'POST') {
+    const { email, name, text } = req.body;
+
+    if (
+      !email.includes('@') ||
+      !name ||
+      name.trim() === '' ||
+      !text ||
+      text.trim() === ''
+    ) {
+      res.status(422).json({ message: 'Invalid input.' });
+      client.close();
+      return;
+    }
+
     const comments = {
       email,
       name,
@@ -16,20 +34,28 @@ const handler = async (req, res) => {
       eventId,
     };
 
-    const result = await db.collection('comments').insertOne(comments);
-    comments.id = result.insertedId;
+    try {
+      const result = await insertDoc(client, 'comments', comments);
+      comments._id = result.insertedId;
 
-    res.status(201).json({ message: 'success...', comments });
+      res.status(201).json({ message: 'success...', comments });
+    } catch (error) {
+      res.status(500).json({ message: 'Gagal insert data!' });
+    }
   }
 
   if (req.method === 'GET') {
-    const documents = await db
-      .collection('comments')
-      .find({ eventId })
-      .sort({ _id: -1 })
-      .toArray();
-
-    res.status(200).json({ comments: documents });
+    try {
+      const documents = await getDocuments(
+        client,
+        'comments',
+        { eventId },
+        { _id: -1 }
+      );
+      res.status(200).json({ comments: documents });
+    } catch (error) {
+      res.status(500).json({ message: 'Gagal fetching data!' });
+    }
   }
 
   client.close();

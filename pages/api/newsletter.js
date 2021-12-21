@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { dbConn, insertDoc } from '../../helpers/db-util';
 
 const handler = async (req, res) => {
   if (req.method === 'POST') {
@@ -9,16 +9,24 @@ const handler = async (req, res) => {
       return;
     }
 
-    const client = await MongoClient.connect(process.env.MONGO_DB);
-    const db = client.db();
+    let client;
 
-    await db.collection('newsletter').insertOne({ email });
+    try {
+      client = await dbConn();
+    } catch (error) {
+      res.status(500).json({ message: 'Gagal terhubung ke database!' });
+      return;
+    }
 
-    client.close();
+    try {
+      await insertDoc(client, 'newsletter', { email });
+      client.close();
+    } catch (error) {
+      res.status(500).json({ message: 'Gagal insert dokumen!' });
+      return;
+    }
 
     res.status(201).json({ message: 'success', email });
-  } else {
-    res.status(200).json({ message: 'Coba Lagi!' });
   }
 };
 
