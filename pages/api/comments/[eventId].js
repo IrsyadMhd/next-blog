@@ -1,11 +1,25 @@
-const handler = (req, res) => {
+import { MongoClient } from 'mongodb';
+
+const handler = async (req, res) => {
   const eventId = req.query.eventId;
 
   const { email, name, text } = req.body;
 
   if (req.method === 'POST') {
-    console.log(email, name, text);
-    res.status(201).json({ message: 'success...' });
+    const comments = {
+      email,
+      name,
+      text,
+      eventId,
+    };
+
+    const client = await MongoClient.connect(process.env.MONGO_DB);
+    const db = client.db();
+
+    const result = await db.collection('comments').insertOne(comments);
+    comments.id = result.insertedId;
+
+    res.status(201).json({ message: 'success...', comments });
   }
 
   if (req.method === 'GET') {
