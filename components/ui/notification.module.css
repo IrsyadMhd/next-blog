@@ -1,0 +1,26 @@
+.notif {
+  display: flex;
+  justify-content: space-between;
+}
+
+.success,
+.pending,
+.error {
+  width: 100%;
+  padding: 0.3rem 7rem;
+}
+
+.success {
+  background-color: rgb(56, 172, 56);
+  color: #fff;
+}
+
+.pending {
+  background-color: rgb(48, 48, 133);
+  color: #fff;
+}
+
+.error {
+  background-color: rgb(207, 69, 51);
+  color: #fff;
+}
