@@ -10,6 +10,7 @@ function Layout(props) {
   return (
     <Fragment>
       <MainHeader />
+      <main>{props.children}</main>
       {notifCtx.notification && (
         <Notification
           status={notifCtx.notification.status}
@@ -17,7 +18,6 @@ function Layout(props) {
           text={notifCtx.notification.text}
         />
       )}
-      <main>{props.children}</main>
     </Fragment>
   );
 }
