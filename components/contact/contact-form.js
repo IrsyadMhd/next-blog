@@ -1,14 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
+import Notification from '../ui/notification';
 import classes from './contact-form.module.css';
 
 const ContactForm = () => {
   const [enteredEmail, setEnteredEmail] = useState('');
   const [enteredName, setEnteredName] = useState('');
   const [enteredMessage, setEnteredMessage] = useState('');
+  const [reqNotif, setReqNotif] = useState();
+
+  useEffect(() => {
+    if (reqNotif?.status === 'success' || reqNotif?.status === 'error') {
+      const timer = setTimeout(() => {
+        setReqNotif(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [reqNotif]);
 
   const sendMessageHandler = event => {
     event.preventDefault();
+
+    setReqNotif({
+      status: 'pending',
+      message: 'sending message...',
+      title: 'process...',
+    });
 
     fetch('api/contact', {
       method: 'POST',
@@ -20,7 +37,33 @@ const ContactForm = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-    });
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+        return res.json().then(data => {
+          throw new Error(data.message || 'something went wrong!');
+        });
+      })
+      .then(data => {
+        setEnteredEmail('');
+        setEnteredName('');
+        setEnteredMessage('');
+
+        setReqNotif({
+          status: 'success',
+          message: 'your message has been sent',
+          title: 'success',
+        });
+      })
+      .catch(error => {
+        setReqNotif({
+          status: 'error',
+          message: error.message,
+          title: 'error',
+        });
+      });
   };
 
   return (
@@ -64,6 +107,13 @@ const ContactForm = () => {
           <button>Send Message</button>
         </div>
       </form>
+      {reqNotif && (
+        <Notification
+          status={reqNotif.status}
+          title={reqNotif.title}
+          message={reqNotif.message}
+        />
+      )}
     </section>
   );
 };
