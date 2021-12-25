@@ -35,7 +35,6 @@
 
 .controls {
   display: flex;
-  flex-direction: column;
   column-gap: 1rem;
   flex-wrap: wrap;
 }
